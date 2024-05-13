@@ -45,8 +45,22 @@ const verfyTokenAndUser = (req, res, next) => {
   });
 };
 
+// verfy token and authoraization
+const verfyTokenAndAuthoriation = (req, res, next) => {
+  verifyToken(req, res, () => {
+    if (req.user.id === req.params.id || req.user.isAdmin) {
+      next();
+    } else {
+      return res
+        .status(403)
+        .json({message: "its authorized by the admin or the user himself"});
+    }
+  });
+};
+
 module.exports = {
   verifyToken,
   verfyTokenAndAdmin,
   verfyTokenAndUser,
+  verfyTokenAndAuthoriation,
 };

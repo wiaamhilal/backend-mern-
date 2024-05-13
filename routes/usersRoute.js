@@ -3,11 +3,13 @@ const {
   getUserProfileCtrl,
   getUsersCount,
   profilePhotoUploadCtrl,
+  deleteUserPfofileCtrl,
 } = require("../controllers/usersController");
 const {
   verfyTokenAndAdmin,
   verfyTokenAndUser,
   verifyToken,
+  verfyTokenAndAuthoriation,
 } = require("../middlewares/verifyToken");
 const validateObjectId = require("../middlewares/validateObjedtId");
 const {upadateUserProfileCtrl} = require("../controllers/usersController");
@@ -22,7 +24,8 @@ router.route("/profile").get(verfyTokenAndAdmin, getAllUsersCtrl);
 router
   .route("/profile/:id")
   .get(validateObjectId, getUserProfileCtrl)
-  .put(validateObjectId, verfyTokenAndUser, upadateUserProfileCtrl);
+  .put(validateObjectId, verfyTokenAndUser, upadateUserProfileCtrl)
+  .delete(validateObjectId, verfyTokenAndAuthoriation, deleteUserPfofileCtrl);
 
 // /api/users/count
 router.route("/count").post(verfyTokenAndAdmin, getUsersCount);
