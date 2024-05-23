@@ -16,7 +16,7 @@ const fs = require("fs");
 //-----------------------------
 
 module.exports.getAllUsersCtrl = asyncHander(async (req, res) => {
-  const users = await User.find();
+  const users = await User.find().select("-password");
   res.status(200).json(users);
 });
 
@@ -28,7 +28,9 @@ module.exports.getAllUsersCtrl = asyncHander(async (req, res) => {
 //-----------------------------
 
 module.exports.getUserProfileCtrl = asyncHander(async (req, res) => {
-  const user = await User.findById(req.params.id).select("-password");
+  const user = await User.findById(req.params.id)
+    .select("-password")
+    .populate("posts");
   if (!user) {
     res.status(404).json({message: "user not found"});
   }
