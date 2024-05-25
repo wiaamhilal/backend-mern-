@@ -1,10 +1,13 @@
 const asyncHander = require("express-async-handler");
 const {User, validateUpdateUser} = require("../models/users");
+const {Post} = require("../models/posts");
+const {Comment} = require("../models/comments");
 const bcrypt = require("bcryptjs");
 const path = require("path");
 const {
   cloudinaryUploadImage,
   cloudinaryReoveImage,
+  cloudinaryReoveMultipleImage,
 } = require("../utils/cloudinary");
 const fs = require("fs");
 
@@ -136,9 +139,23 @@ module.exports.deleteUserPfofileCtrl = asyncHander(async (req, res) => {
   if (!user) {
     return res.status(404).json({message: "user is not exist"});
   }
+  // 2- got all posts from db
+  const posts = await Post.find({user: user._id});
+
+  // 3- get the public id from the posts
+  const publicIds = posts?.map((post) => post.image.publicId);
+
+  // 4- delete all posts image from cloudinary that belong to this user
+  if (publicIds?.length > 0) {
+    await cloudinaryReoveMultipleImage(publicIds);
+  }
 
   // 5-delete the profile pic from cloudinary
   await cloudinaryReoveImage(user.profilePhoto.publicId);
+
+  // 6-delete user posts and comments
+  await Post.deleteMany({user: user._id});
+  await Comment.deleteMany({user: user._id});
 
   // 7-delete the user himself
   await User.findByIdAndDelete(req.params.id);

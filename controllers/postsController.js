@@ -10,6 +10,7 @@ const {
   cloudinaryUploadImage,
   cloudinaryReoveImage,
 } = require("../utils/cloudinary");
+const {Comment} = require("../models/comments");
 
 //-----------------------------
 // desc greate a new post
@@ -87,9 +88,9 @@ module.exports.getAllPostsCtrl = asyncHander(async (req, res) => {
 // access public
 //-----------------------------
 module.exports.getSinglePostCtrl = asyncHander(async (req, res) => {
-  const post = await Post.findById(req.params.id).populate("user", [
-    "-password",
-  ]);
+  const post = await Post.findById(req.params.id)
+    .populate("user", ["-password"])
+    .populate("comments");
   if (!post) {
     return res.status(404).json({message: "post not found"});
   }
@@ -124,6 +125,7 @@ module.exports.deletePostCtrl = asyncHander(async (req, res) => {
     await cloudinaryReoveImage(post.image.publicId);
 
     // TODO - delete all comments that belong to the post
+    await Comment.deleteMany({postId: post._id});
 
     res.status(200).json({
       message: "the post has been deleted",

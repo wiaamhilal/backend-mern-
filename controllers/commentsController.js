@@ -1,5 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const {validateCreateComment, Comment} = require("../models/comments");
+const {
+  validateCreateComment,
+  Comment,
+  validateUpdateComment,
+} = require("../models/comments");
 const {User} = require("../models/users");
 
 //-----------------------------
@@ -53,5 +57,37 @@ module.exports.deleteCommentCtrl = asyncHandler(async (req, res) => {
     res
       .status(403)
       .json({message: "unauthoraized, you cant delete the comment"});
+  }
+});
+
+//-----------------------------
+// desc update coment
+// route /api/comments/:id
+// method PUT
+// access only the comment owner
+//-----------------------------
+
+module.exports.updateCommentCtrl = asyncHandler(async (req, res) => {
+  const {error} = validateUpdateComment(req.body);
+  const comment = await Comment.findById(req.params.id);
+  if (error) {
+    return res.status(400).json({message: error.details[0].message});
+  } else if (!comment) {
+    return res.status(404).json({message: "comment not found"});
+  } else if (req.user.id !== comment.user.toString()) {
+    return res
+      .status(403)
+      .json({message: "unauthoraized, only the comment owner"});
+  } else {
+    const updateComment = await Comment.findByIdAndUpdate(
+      req.params.id,
+      {
+        $set: {
+          text: req.body.text,
+        },
+      },
+      {new: true}
+    );
+    res.status(200).json(updateComment);
   }
 });
